@@ -1,4 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using ShoppingCartApp.Data;
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<ShoppingCartAppContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("ShoppingCartAppContext") ?? throw new InvalidOperationException("Connection string 'ShoppingCartAppContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
