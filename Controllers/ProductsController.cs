@@ -22,7 +22,7 @@ namespace ShoppingCartApp.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Product.ToListAsync());
+            return View(await _context.Products.ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -33,7 +33,7 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Product
+            var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
@@ -54,12 +54,35 @@ namespace ShoppingCartApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ProductName,Price,ProductImage")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,ProductName,Price,ProductImage")] Product product, IFormFile imageFile)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
+                    var extension = Path.GetExtension(imageFile.FileName);
+                    var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
+
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", uniqueFileName);
+
+                    // Save the file to the specified path
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    // Save the file path to the database
+                    product.ProductImage = "/images/" + uniqueFileName;
+                }
+                else
+                {
+                    ModelState.AddModelError("ProductImage", "Please upload a product image.");
+                }
+
+                _context?.Add(product);
+
+                await (_context?.SaveChangesAsync() ?? Task.CompletedTask);
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -73,12 +96,48 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Product.FindAsync(id);
+            var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
+
+            string? productImagePath = product.ProductImage;
+            string? filePath = productImagePath != null
+                ? Path.Combine(Directory.GetCurrentDirectory(), productImagePath)
+                : null;
+            ViewBag.viewImage = product.ProductImage;
+
             return View(product);
+        }
+
+        public IFormFile CreateFormFileFromPath(string filePath)
+        {
+            try
+            {
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                var extension = Path.GetExtension(filePath);
+                var uniqueFileName = $"{fileName}{extension}";
+
+                var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", uniqueFileName);
+
+                using (var stream = new FileStream(newFilePath, FileMode.Open, FileAccess.Read))
+                {
+
+                    var formFile = new FormFile(stream, 0, stream.Length, Path.GetFileNameWithoutExtension(newFilePath), Path.GetFileName(newFilePath))
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = "image/" + extension.TrimStart('.')
+                    };
+
+                    return formFile;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error accessing file: {ex.Message}");
+                throw;
+            }
         }
 
         // POST: Products/Edit/5
@@ -86,7 +145,7 @@ namespace ShoppingCartApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductName,Price,ProductImage")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductName,Price,ProductImage")] Product product, IFormFile imageFile)
         {
             if (id != product.Id)
             {
@@ -97,6 +156,23 @@ namespace ShoppingCartApp.Controllers
             {
                 try
                 {
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        var fileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
+                        var extension = Path.GetExtension(imageFile.FileName);
+                        var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", uniqueFileName);
+
+                        // Save the file to the specified path
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        // Update the file path in the database
+                        product.ProductImage = "/images/" + uniqueFileName;
+                    }
+
                     _context.Update(product);
                     await _context.SaveChangesAsync();
                 }
@@ -124,7 +200,7 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Product
+            var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
@@ -139,10 +215,10 @@ namespace ShoppingCartApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _context.Products.FindAsync(id);
             if (product != null)
             {
-                _context.Product.Remove(product);
+                _context.Products.Remove(product);
             }
 
             await _context.SaveChangesAsync();
@@ -151,7 +227,7 @@ namespace ShoppingCartApp.Controllers
 
         private bool ProductExists(int id)
         {
-            return _context.Product.Any(e => e.Id == id);
+            return _context.Products.Any(e => e.Id == id);
         }
     }
 }

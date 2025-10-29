@@ -22,7 +22,7 @@ namespace ShoppingCartApp.Controllers
         // GET: Items
         public async Task<IActionResult> Index()
         {
-            var shoppingCartAppContext = _context.Item.Include(i => i.Product);
+            var shoppingCartAppContext = _context.Items.Include(i => i.Product);
             return View(await shoppingCartAppContext.ToListAsync());
         }
 
@@ -34,7 +34,7 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var item = await _context.Item
+            var item = await _context.Items
                 .Include(i => i.Product)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (item == null)
@@ -48,7 +48,7 @@ namespace ShoppingCartApp.Controllers
         // GET: Items/Create
         public IActionResult Create()
         {
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "ProductName");
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace ShoppingCartApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "ProductName", item.ProductId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName", item.ProductId);
             return View(item);
         }
 
@@ -77,12 +77,12 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var item = await _context.Item.FindAsync(id);
+            var item = await _context.Items.FindAsync(id);
             if (item == null)
             {
                 return NotFound();
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "ProductName", item.ProductId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName", item.ProductId);
             return View(item);
         }
 
@@ -96,6 +96,20 @@ namespace ShoppingCartApp.Controllers
             if (id != item.Id)
             {
                 return NotFound();
+            }
+
+            if (item.Product is null)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product is null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    item.Product = product;
+                    ModelState.Remove(nameof(item.Product));
+                }
             }
 
             if (ModelState.IsValid)
@@ -118,7 +132,7 @@ namespace ShoppingCartApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Product, "Id", "ProductName", item.ProductId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName", item.ProductId);
             return View(item);
         }
 
@@ -130,7 +144,7 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            var item = await _context.Item
+            var item = await _context.Items
                 .Include(i => i.Product)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (item == null)
@@ -146,10 +160,10 @@ namespace ShoppingCartApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var item = await _context.Item.FindAsync(id);
+            var item = await _context.Items.FindAsync(id);
             if (item != null)
             {
-                _context.Item.Remove(item);
+                _context.Items.Remove(item);
             }
 
             await _context.SaveChangesAsync();
@@ -158,7 +172,7 @@ namespace ShoppingCartApp.Controllers
 
         private bool ItemExists(int id)
         {
-            return _context.Item.Any(e => e.Id == id);
+            return _context.Items.Any(e => e.Id == id);
         }
     }
 }
