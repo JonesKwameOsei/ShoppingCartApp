@@ -45,6 +45,23 @@ namespace ShoppingCartApp.Controllers
             return View(item);
         }
 
+        // GET: Items/GetProductDetails/5
+        public async Task<IActionResult> GetProductDetails(int? id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return Json(new
+            {
+                productName = product.ProductName,
+                price = product.Price,
+                productImage = product.ProductImage
+            });
+        }
+
         // GET: Items/Create
         public IActionResult Create()
         {
