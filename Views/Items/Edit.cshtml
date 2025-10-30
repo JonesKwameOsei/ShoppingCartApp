@@ -1,47 +1,205 @@
 ﻿@model ShoppingCartApp.Models.Item
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Item";
 }
 
-<h1>Edit Item in Cart</h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Edit Item in Cart
+                    </h4>
+                </div>
 
-<h4>Item</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit" method="post">
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" id="editForm">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ProductId" class="dorm-label">
+                                        <i class="bi bi-box-seam"></i> Product
+                                    </label>
+                                    <select asp-for="ProductId">
+                                        class="form-select"
+                                        asp-items="@(ViewData["ProductId"] as SelectList)"
+                                        id="productDropdown">
+                                        <option value="">-- Select Product --</option>
+                                    </select>
+                                    <span asp-validation-for="ProductId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Name" class="control-label">
+                                        <i class="bi bi-tag"></i> Item Name
+                                    </label>
+                                    <input asp-for="Name" class="form-control" id="itemName" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Price" class="form-label">
+                                        <i class="bi bi-currency-pound"></i> Price
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">£</span>
+                                        <input asp-for="Price" class="form-control" id="itemPrice" readonly />
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Quantity" class="form-label">
+                                        <i class="bi bi-123"></i> Quantity
+                                    </label>
+                                    <input asp-for="Quantity" type="number" min="1" class="form-control" id="itemQuantity" />
+                                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" id="totalPreview">
+                            <strong><i class="bi bi-calculator"></i> Total:</strong>
+                            <span id="totalAmount">£0.00</span>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                            <a asp-action="Index" class="btn btn-alert-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <a asp-action="Details" asp-asp-route-id="@Model?.Id" class="btn btn-info text-white">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm" id="productPreview">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-image"></i> Product Preview
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img id="productImage"
+                         src="@Model?.Product?.ProductImage"
+                         alt="@Model?.Product?.ProductName"
+                         class="img-fluid rounded mb-3"
+                         style="max-height: 250px; object-fit: contain;" />
+                    <h6 id="productName" class="text-muted">@Model?.Product?.ProductName</h6>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Quantity" class="control-label"></label>
-                <input asp-for="Quantity" class="form-control" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="card-title"><i tabindex=" bi-info-circle"></i> Quick Info</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Item ID:</strong> @Model?.Id</li>
+                        <li><strong>Created:</strong>  <span class="text-muted">N/A</span></li>
+                        <li><strong>Last Modified:</strong>  <span class="text-muted">Just now</span></li>
+                    </ul>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="ProductId" class="control-label"></label>
-                <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId"></select>
-                <span asp-validation-for="ProductId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productDropdown = document.getElementById('productDropdown');
+            const itemNameInput = document.getElementById('itemName');
+            const itemPriceInput = document.getElementById('itemPrice');
+            const itemQuantityInput = document.getElementById('itemQuantity');
+            const productImage = document.getElementById('productImage');
+            const productName = document.getElementById('productName');
+            const totalAmount = document.getElementById('totalAmount');
+
+            // Calculate total on the page load
+            updateTotal();
+
+            // Update total when quantity changes
+            itemQuantityInput.addEventListener('input', updateTotal);
+
+            function updateTotal() {
+                const price = parseFloat(itemPriceInput.value) || 0;
+                const quantity = parseInt(itemQuantityInput.value) || 0;
+                const total = price * quantity;
+                totalAmount.textContent = '£' + total.toFixed(2);
+            }
+
+            // Handle product dropdown change
+            productDropdown.addEventListener('change', function() {
+                const selectedProductId = this.value;
+
+                if (selectedProductId === '') {
+                    return;
+                }
+
+                // Show loading state
+                itemPriceInput.value = 'Loading...';
+                itemNameInput.value = 'Loading...';
+
+                // Fetch product details via AJAX
+                fetch(`/Items/GetProductDetails/${selectedProductId}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Product not found');
+                        return response.json();
+                    })
+                    .then(data => {
+                        itemNameInput.value = data.productName;
+                        itemPriceInput.value = data.price.toFixed(2);
+
+                        if (data.productImage) {
+                            productImage.src = data.productImage;
+                            productImage.alt = data.productName;
+                            productName.textContent = data.productName;
+                        }
+
+                        updateTotal();
+
+                        // Success feedback
+                        showToast('Product details loaded successfully', 'success');
+                    })
+                    .catch(Error => {
+                        console.error('Error:', error);
+                        showToast('Error loading product details', 'error');
+                    });
+            });
+
+            function showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+        });
+    </script>
 }
