@@ -13,7 +13,6 @@
                         <i class="bi bi-pencil-square"></i> Edit Item in Cart
                     </h4>
                 </div>
-
                 <div class="card-body">
                     <form asp-action="Edit" method="post" id="editForm">
                         <input type="hidden" asp-for="Id" />
@@ -21,13 +20,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label asp-for="ProductId" class="dorm-label">
+                                    <label asp-for="ProductId" class="form-label">
                                         <i class="bi bi-box-seam"></i> Product
                                     </label>
-                                    <select asp-for="ProductId">
-                                        class="form-select"
-                                        asp-items="@(ViewData["ProductId"] as SelectList)"
-                                        id="productDropdown">
+                                    <select asp-for="ProductId"
+                                            class="form-select"
+                                            asp-items="@(ViewData["ProductId"] as SelectList)"
+                                            id="productDropdown">
                                         <option value="">-- Select Product --</option>
                                     </select>
                                     <span asp-validation-for="ProductId" class="text-danger"></span>
@@ -36,7 +35,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label asp-for="Name" class="control-label">
+                                    <label asp-for="Name" class="form-label">
                                         <i class="bi bi-tag"></i> Item Name
                                     </label>
                                     <input asp-for="Name" class="form-control" id="itemName" />
@@ -49,7 +48,7 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label asp-for="Price" class="form-label">
-                                        <i class="bi bi-currency-pound"></i> Price
+                                        <i class="bi bi-currency-dollar"></i> Price
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text">£</span>
@@ -79,10 +78,10 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle"></i> Save Changes
                             </button>
-                            <a asp-action="Index" class="btn btn-alert-secondary">
+                            <a asp-action="Index" class="btn btn-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
                             </a>
-                            <a asp-action="Details" asp-asp-route-id="@Model?.Id" class="btn btn-info text-white">
+                            <a asp-action="Details" asp-route-id="@Model?.Id" class="btn btn-info text-white">
                                 <i class="bi bi-eye"></i> View Details
                             </a>
                         </div>
@@ -110,11 +109,11 @@
 
             <div class="card shadow-sm mt-3">
                 <div class="card-body">
-                    <h6 class="card-title"><i tabindex=" bi-info-circle"></i> Quick Info</h6>
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Quick Info</h6>
                     <ul class="list-unstyled">
                         <li><strong>Item ID:</strong> @Model?.Id</li>
-                        <li><strong>Created:</strong>  <span class="text-muted">N/A</span></li>
-                        <li><strong>Last Modified:</strong>  <span class="text-muted">Just now</span></li>
+                        <li><strong>Created:</strong> <span class="text-muted">N/A</span></li>
+                        <li><strong>Last Modified:</strong> <span class="text-muted">Just now</span></li>
                     </ul>
                 </div>
             </div>
@@ -137,7 +136,7 @@
             const productName = document.getElementById('productName');
             const totalAmount = document.getElementById('totalAmount');
 
-            // Calculate total on the page load
+            // Calculate total on page load
             updateTotal();
 
             // Update total when quantity changes
@@ -162,7 +161,7 @@
                 itemPriceInput.value = 'Loading...';
                 itemNameInput.value = 'Loading...';
 
-                // Fetch product details via AJAX
+                // Fetch product details
                 fetch(`/Items/GetProductDetails/${selectedProductId}`)
                     .then(response => {
                         if (!response.ok) throw new Error('Product not found');
@@ -183,7 +182,7 @@
                         // Success feedback
                         showToast('Product details loaded successfully', 'success');
                     })
-                    .catch(Error => {
+                    .catch(error => {
                         console.error('Error:', error);
                         showToast('Error loading product details', 'error');
                     });
@@ -193,7 +192,9 @@
                 const toast = document.createElement('div');
                 toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
                 toast.style.zIndex = '9999';
-                toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+                toast.innerHTML = `
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}
+                `;
                 document.body.appendChild(toast);
 
                 setTimeout(() => {
