@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCartApp.Data;
@@ -46,12 +42,14 @@ namespace ShoppingCartApp.Controllers
         }
 
         // GET: Items/GetProductDetails/5
-        public async Task<IActionResult> GetProductDetails(int? id)
+        [HttpGet]  // ✅ FIXED: Removed duplicate [HttpGet]
+        public async Task<IActionResult> GetProductDetails(int id)
         {
             var product = await _context.Products.FindAsync(id);
+
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new { error = "Product not found" });
             }
 
             return Json(new
@@ -66,22 +64,42 @@ namespace ShoppingCartApp.Controllers
         public IActionResult Create()
         {
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName");
-            return View();
+            var item = new Item
+            {
+                Price = 0,
+                Quantity = 1
+            };
+            return View(item);
         }
 
         // POST: Items/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Quantity,Price,ProductId")] Item item)
         {
+            // Remove Product navigation property from ModelState to prevent validation errors
+            ModelState.Remove(nameof(item.Product));
+
             if (ModelState.IsValid)
             {
-                _context.Add(item);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(item);
+                    await _context.SaveChangesAsync();
+
+                    // Add success message to TempData
+                    TempData["SuccessMessage"] = $"Item '{item.Name}' has been added to cart successfully!";
+
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    // Log the error
+                    ModelState.AddModelError("", $"Error saving item: {ex.Message}");
+                }
             }
+
+            // If we got here, something failed, re-display form with errors
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName", item.ProductId);
             return View(item);
         }
@@ -104,8 +122,6 @@ namespace ShoppingCartApp.Controllers
         }
 
         // POST: Items/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Quantity,Price,ProductId")] Item item)
@@ -115,19 +131,8 @@ namespace ShoppingCartApp.Controllers
                 return NotFound();
             }
 
-            if (item.Product is null)
-            {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product is null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    item.Product = product;
-                    ModelState.Remove(nameof(item.Product));
-                }
-            }
+            // Remove Product navigation property from ModelState
+            ModelState.Remove(nameof(item.Product));
 
             if (ModelState.IsValid)
             {
@@ -135,6 +140,10 @@ namespace ShoppingCartApp.Controllers
                 {
                     _context.Update(item);
                     await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"Item '{item.Name}' has been updated successfully!";
+
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -147,8 +156,8 @@ namespace ShoppingCartApp.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
+
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "ProductName", item.ProductId);
             return View(item);
         }
@@ -181,9 +190,11 @@ namespace ShoppingCartApp.Controllers
             if (item != null)
             {
                 _context.Items.Remove(item);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Item has been removed from cart successfully!";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
