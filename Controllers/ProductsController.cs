@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCartApp.Data;
 using ShoppingCartApp.Models;
@@ -83,6 +78,7 @@ namespace ShoppingCartApp.Controllers
                 _context?.Add(product);
 
                 await (_context?.SaveChangesAsync() ?? Task.CompletedTask);
+                TempData["SuccessMessage"] = $"Product '{product.ProductName}' has been created successfully!";
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -175,6 +171,7 @@ namespace ShoppingCartApp.Controllers
 
                     _context.Update(product);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"Product '{product.ProductName}' has been updated successfully!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -219,6 +216,7 @@ namespace ShoppingCartApp.Controllers
             if (product != null)
             {
                 _context.Products.Remove(product);
+                TempData["SuccessMessage"] = "Product has been deleted successfully!";
             }
 
             await _context.SaveChangesAsync();
