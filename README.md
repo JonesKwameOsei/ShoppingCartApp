@@ -139,7 +139,7 @@ Before you begin, ensure you have the following installed:
    - Press `F5` or click the "Run" button
 
 3. **Access the application**
-   - Navigate to `https://localhost:5001` (or the port shown in the console)
+   - Navigate to `https://localhost:portNumber` (or the port shown in the console)
    - Default admin credentials:
      - Username: `admin@shoppingcart.com`
      - Password: `Admin@123`
